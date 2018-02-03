@@ -33,6 +33,10 @@ public class ImagesAdapter extends RecyclerView.Adapter<ImagesAdapter.MyViewHold
         return mItems.size();
     }
 
+    public void setItems(List<ImageItem> imageItems){
+        this.mItems = imageItems;
+        notifyDataSetChanged();
+    }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
 

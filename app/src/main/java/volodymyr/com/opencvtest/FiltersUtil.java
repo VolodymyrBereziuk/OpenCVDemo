@@ -20,7 +20,7 @@ import java.util.Random;
 import static org.opencv.imgproc.Imgproc.circle;
 import static org.opencv.imgproc.Imgproc.line;
 
-public class FiltersUtil {
+public class FiltersUtil{
 
     private static final String TAG = FiltersUtil.class.getSimpleName();
 
@@ -252,5 +252,4 @@ public class FiltersUtil {
         }
         return matToBitmap(contours);
     }
-
 }

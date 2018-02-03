@@ -1,10 +1,11 @@
-package volodymyr.com.opencvtest;
+package volodymyr.com.ui;
 
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -20,7 +21,12 @@ import org.opencv.android.OpenCVLoader;
 import java.util.ArrayList;
 import java.util.List;
 
-import volodymyr.com.FeatureDetectionUtil;
+import volodymyr.com.opencvtest.FeatureDetectionUtil;
+import volodymyr.com.opencvtest.FiltersUtil;
+import volodymyr.com.opencvtest.ImageItem;
+import volodymyr.com.opencvtest.ImageItemBuilder;
+import volodymyr.com.opencvtest.ImagesAdapter;
+import volodymyr.com.opencvtest.R;
 
 public class MainActivity extends AppCompatActivity {
     private final int SELECT_PHOTO = 1;
@@ -39,12 +45,18 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap logoBitmap;
     private Bitmap sudokuBitmap;
 
+    private Bitmap cola1;
+    private Bitmap cola2;
+    private Bitmap house;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initImages();
         initView();
+
+        load();
     }
 
     private void initImages() {
@@ -52,18 +64,41 @@ public class MainActivity extends AppCompatActivity {
         saltPaperBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.lena_salt_paper);
         logoBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.open_cv);
         sudokuBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sudoku);
+
+        cola1 = BitmapFactory.decodeResource(getResources(), R.drawable.cola1);
+        cola2 = BitmapFactory.decodeResource(getResources(), R.drawable.cola2);
+
+        house = BitmapFactory.decodeResource(getResources(), R.drawable.face);
+
     }
 
     private void initView() {
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
-        mAdapter = new ImagesAdapter(prepareRecognitionData());
+        mAdapter = new ImagesAdapter(new ArrayList<ImageItem>());
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), 1);
         recyclerView.addItemDecoration(dividerItemDecoration);
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
+    }
+
+    private void load() {
+        new AsyncTask<Void, Void, List<ImageItem>>() {
+            @Override
+            protected List<ImageItem> doInBackground(Void... voids) {
+                return prepareRecognitionData();
+            }
+
+            @Override
+            protected void onPostExecute(List<ImageItem> aVoid) {
+                super.onPostExecute(aVoid);
+                mAdapter.setItems(aVoid);
+            }
+        }.execute();
+
+
     }
 
     private List<ImageItem> prepareFilteredData() {
@@ -118,7 +153,9 @@ public class MainActivity extends AppCompatActivity {
     private List<ImageItem> prepareRecognitionData() {
         List<ImageItem> images = new ArrayList<>();
 
-        images.add(new ImageItemBuilder().setImage(FeatureDetectionUtil.sift(sudokuBitmap,sudokuBitmap)).createImageItem());
+        images.add(new ImageItemBuilder().setImage(FeatureDetectionUtil.haar(originalBitmap)).createImageItem());
+
+//       images.addAll(prepareFilteredData());
 
         return images;
     }
@@ -172,23 +209,4 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-//    public void differenceOfGaussian() {
-//        Mat grayMat = new Mat();
-//        Mat blur1 = new Mat();
-//        Mat blur2 = new Mat();
-//        //Converting the image to grayscale
-//        Imgproc.cvtColor(mat, grayMat, Imgproc.COLOR_BGR2GRAY);
-//        //Bluring the images using two different blurring radius
-//        Imgproc.GaussianBlur(grayMat, blur1, new Size(15, 15), 5);
-//        Imgproc.GaussianBlur(grayMat, blur2, new Size(21, 21), 5);
-//        //Subtracting the two blurred images
-//        Mat DoG = new Mat();
-//        Core.absdiff(blur1, blur2, DoG);
-//        //Inverse Binary Thresholding
-//        Core.multiply(DoG, new Scalar(100), DoG);
-//        Imgproc.threshold(DoG, DoG, 50, 255, Imgproc.THRESH_BINARY_INV);
-//        //Converting Mat back to Bitmap
-//        Utils.matToBitmap(DoG, bitmap);
-//
-//    }
 }
